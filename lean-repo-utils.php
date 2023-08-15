@@ -173,10 +173,7 @@ function push_back($fullRepository, $workDir, $upstreamRepoWithCredentials, $bui
     // The user should then create a new PR, and use the Git Provider UI to resolve
     // any conflicts (or clone the branch locally to do the same thing).
     $createNewBranchReason = '';
-    if ($branch == 'master') {
-        $createNewBranchReason = "the $branch branch cannot be pushed to directly";
-    }
-    elseif ($remoteHead != $fromSha) {
+    if ($remoteHead != $fromSha) {
         $createNewBranchReason = "new conflicting commits (e.g. $remoteHead) were added to the upstream repository";
     }
     if (!empty($createNewBranchReason)) {
