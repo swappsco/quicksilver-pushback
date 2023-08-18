@@ -182,6 +182,24 @@ function push_back($fullRepository, $workDir, $upstreamRepoWithCredentials, $bui
         print "Creating a new branch, '$targetBranch', because $createNewBranchReason.\n";
         print "git checkout -B $targetBranch $fromSha\n";
         passthru("git -C $canonicalRepository checkout -B $targetBranch $fromSha 2>&1");
+
+        ## A new PR is created into github repository
+        $PR_title = 'Repository Outdated: GitHub vs Pantheon';
+        $PR_body = 'This repository is outdated in relation to the Pantheon repository.';
+
+        $parsedUrl = parse_url($upstreamRepoWithCredentials);
+        $repoPath = trim($parsedUrl['path'], '/');
+        $pathParts = explode('/', $repoPath);
+
+        $owner = $pathParts[0];
+        $repo = str_replace('.git', '', $pathParts[1]);
+        
+        $startIndex = strpos($upstreamRepoWithCredentials, 'https://') + 8;
+        $endIndex = strpos($upstreamRepoWithCredentials, ':x-oauth');
+        $token = substr($upstreamRepoWithCredentials, $startIndex, $endIndex - $startIndex);
+
+        $curlCommand = 'curl -X POST -H "Authorization: token '.$token.'" -d \'{"title":"'.$PR_title.'","head":"'.$targetBranch.'","base":"'.$branch.'","body":"'.$PR_body.'"}\' https://api.github.com/repos/'.$owner.'/'.$repo.'/pulls';
+        passthru($curlCommand);
     }
 
     // Now for some git magic.
