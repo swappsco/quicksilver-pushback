@@ -34,6 +34,31 @@ $workDir = sys_get_temp_dir() . "/pushback-workdir";
 passthru("rm -rf $workDir");
 mkdir($workDir);
 
+// Updating metadata with pantheon repository data.
+$pantheon_remoteHead = exec("git -C $fullRepository rev-parse HEAD");
+$pantheon_commit = exec("git -C $fullRepository log -1 --pretty=\"%s\"");
+$pantheon_commit_date = exec("git -C $fullRepository log -1 --pretty='%ci'");
+$pantheon_build_date = date("Y-m-d H:i:s O");
+
+$currentDateTime = new DateTime();
+$interval = new DateInterval('PT10M');
+$currentDateTime->sub($interval);
+$pantheon_build_date = $currentDateTime->format("Y-m-d H:i:s O");
+
+$fake_metadata = array(
+    "url" => "git@github.com:swappsco/ncarb.git",
+    "ref" => "master",
+    "sha" => $pantheon_remoteHead ,
+    "comment" => $pantheon_commit,
+    "commit-date" => $pantheon_commit_date,
+    "build-date" => $pantheon_build_date,
+);
+
+$jsonData = json_encode($fake_metadata, JSON_PRETTY_PRINT);
+$fake_build_metadata_path = $fullRepository."/build-metadata.json";
+file_put_contents($fake_build_metadata_path, $jsonData);
+
+// Getting Metadata & Providers
 $buildProviders = load_build_providers($fullRepository);
 $buildMetadata = load_build_metadata($fullRepository);
 // The remote repo to push to
