@@ -124,11 +124,11 @@ function push_back($fullRepository, $workDir, $upstreamRepoWithCredentials, $bui
     $commitToSubmit = exec("git -C $fullRepository rev-parse HEAD");
 
     // Seatbelts: is build metadatafile modified in the HEAD commit?
-    $commitWithBuildMetadataFile = exec("git -C $fullRepository log -n 1 --pretty=format:%H -- $buildMetadataFile");
-    if ($commitWithBuildMetadataFile == $commitToSubmit) {
-        print "Ignoring commit because it contains build assets.\n";
-        return;
-    }
+    // $commitWithBuildMetadataFile = exec("git -C $fullRepository log -n 1 --pretty=format:%H -- $buildMetadataFile");
+    // if ($commitWithBuildMetadataFile == $commitToSubmit) {
+    //     print "Ignoring commit because it contains build assets.\n";
+    //     return;
+    // }
 
     // A working branch to make changes on
     $targetBranch = $branch;
@@ -147,6 +147,13 @@ function push_back($fullRepository, $workDir, $upstreamRepoWithCredentials, $bui
     // we can make a branch off of the commit this multidev was built from.
     print "git rev-parse HEAD\n";
     $remoteHead = exec("git -C $canonicalRepository rev-parse HEAD");
+
+    // If there are no changes between pantheon and remote repository, process will stop.
+    if ($fromSha == $remoteHead) {
+        print "There are no changes between repositories.\n";
+        return;
+    }
+
     if ($remoteHead != $fromSha) {
         // TODO: If we had git 2.11.0, we could use --shallow-since with the date
         // from $buildMetadata['commit-date'] to get exactly the commits we need.
